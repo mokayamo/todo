@@ -15,7 +15,7 @@ A beautiful, modern TODO list application with calendar view and date management
 
 ## Demo
 
-Visit the live demo: [Modern TODO App](https://modern-todo-app.vercel.app)
+Visit the live demo: [Modern TODO App](https://todo-mokayamo.vercel.app)
 
 ## Technology Stack
 
