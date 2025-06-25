@@ -1,0 +1,29 @@
+{
+  "name": "modern-todo-app",
+  "version": "1.0.0",
+  "description": "Modern and elegant TODO list application with calendar view",
+  "main": "index.html",
+  "scripts": {
+    "dev": "npx serve .",
+    "build": "echo 'No build step required for static site'",
+    "start": "npx serve ."
+  },
+  "keywords": [
+    "todo",
+    "task-manager",
+    "calendar",
+    "productivity",
+    "javascript",
+    "html",
+    "css"
+  ],
+  "author": "Claude Code Assistant",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "."
+  },
+  "engines": {
+    "node": ">=14"
+  }
+}

@@ -1,0 +1,1359 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TODOリスト</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+            min-height: 100vh;
+            padding: 20px;
+            background-attachment: fixed;
+        }
+
+        .container {
+            max-width: 700px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border-radius: 24px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1), 0 1px 3px rgba(0, 0, 0, 0.08);
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .header {
+            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #d946ef 100%);
+            color: white;
+            padding: 40px 30px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="25" cy="25" r="1" fill="white" opacity="0.1"/><circle cx="75" cy="75" r="1" fill="white" opacity="0.1"/><circle cx="50" cy="10" r="0.5" fill="white" opacity="0.15"/><circle cx="10" cy="90" r="0.5" fill="white" opacity="0.1"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>') repeat;
+            pointer-events: none;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 8px;
+            position: relative;
+            z-index: 1;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .header p {
+            font-weight: 400;
+            opacity: 0.9;
+            font-size: 1.1rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .input-section {
+            padding: 32px;
+            background: linear-gradient(to bottom, rgba(255, 255, 255, 0.8), rgba(248, 250, 252, 0.8));
+            border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+        }
+
+        .input-container {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .input-row {
+            display: flex;
+            gap: 10px;
+            flex: 1;
+            min-width: 300px;
+        }
+
+        .date-input {
+            display: flex;
+            gap: 12px;
+            margin-top: 12px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .date-field {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .date-field label {
+            font-size: 12px;
+            font-weight: 600;
+            color: #64748b;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .task-type-toggle {
+            display: flex;
+            gap: 8px;
+            margin-top: 16px;
+            margin-bottom: 8px;
+            padding: 6px;
+            background: rgba(248, 250, 252, 0.9);
+            border-radius: 12px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(0, 0, 0, 0.06);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+
+        .task-type-btn {
+            padding: 10px 18px;
+            border: none;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.6);
+            color: #64748b;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            border: 1px solid rgba(0, 0, 0, 0.06);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .task-type-btn:hover {
+            background: rgba(255, 255, 255, 0.8);
+            transform: translateY(-1px);
+        }
+
+        .task-type-btn.active {
+            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+            color: white;
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+            border-color: #6366f1;
+            transform: translateY(-1px);
+        }
+
+        .period-inputs {
+            display: none;
+            gap: 12px;
+            margin-top: 8px;
+            flex-wrap: wrap;
+        }
+
+        .period-inputs.active {
+            display: flex;
+        }
+
+        .single-date-input {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .description-input {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            margin-top: 16px;
+        }
+
+        .description-input label {
+            font-size: 12px;
+            font-weight: 600;
+            color: #64748b;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        #descriptionInput {
+            padding: 12px 16px;
+            border: 2px solid rgba(0, 0, 0, 0.08);
+            border-radius: 12px;
+            font-size: 14px;
+            font-weight: 400;
+            outline: none;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(10px);
+            resize: vertical;
+            min-height: 60px;
+            max-height: 120px;
+            font-family: inherit;
+            line-height: 1.4;
+        }
+
+        #descriptionInput:focus {
+            border-color: #6366f1;
+            background: rgba(255, 255, 255, 0.95);
+            box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1), 0 4px 12px rgba(0, 0, 0, 0.1);
+            transform: translateY(-1px);
+        }
+
+        #descriptionInput::placeholder {
+            color: #9ca3af;
+            opacity: 1;
+        }
+
+        #taskInput {
+            flex: 1;
+            padding: 16px 20px;
+            border: 2px solid rgba(0, 0, 0, 0.08);
+            border-radius: 16px;
+            font-size: 16px;
+            font-weight: 400;
+            outline: none;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(10px);
+        }
+
+        #taskInput:focus {
+            border-color: #6366f1;
+            background: rgba(255, 255, 255, 0.95);
+            box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1), 0 4px 12px rgba(0, 0, 0, 0.1);
+            transform: translateY(-1px);
+        }
+
+        #dueDateInput, #startDateInput, #endDateInput {
+            padding: 12px 16px;
+            border: 2px solid rgba(0, 0, 0, 0.08);
+            border-radius: 12px;
+            font-size: 14px;
+            font-weight: 500;
+            outline: none;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            min-width: 140px;
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(10px);
+        }
+
+        #dueDateInput:focus, #startDateInput:focus, #endDateInput:focus {
+            border-color: #6366f1;
+            background: rgba(255, 255, 255, 0.95);
+            box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1), 0 4px 12px rgba(0, 0, 0, 0.1);
+            transform: translateY(-1px);
+        }
+
+        #addBtn {
+            padding: 16px 28px;
+            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+            color: white;
+            border: none;
+            border-radius: 16px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+        }
+
+        #addBtn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(99, 102, 241, 0.4);
+        }
+
+        #addBtn:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 8px rgba(99, 102, 241, 0.3);
+        }
+
+        #addBtn:disabled {
+            background: linear-gradient(135deg, #d1d5db 0%, #9ca3af 100%);
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .todo-list {
+            padding: 24px 32px 32px;
+            background: rgba(255, 255, 255, 0.6);
+            min-height: 300px;
+        }
+
+        .todo-item {
+            display: flex;
+            align-items: center;
+            padding: 20px;
+            border: 1px solid rgba(0, 0, 0, 0.06);
+            border-radius: 16px;
+            margin-bottom: 12px;
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(10px);
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .todo-item::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.03) 0%, rgba(139, 92, 246, 0.03) 100%);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .todo-item:hover {
+            background: rgba(255, 255, 255, 0.95);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+            border-color: rgba(99, 102, 241, 0.2);
+        }
+
+        .todo-item:hover::before {
+            opacity: 1;
+        }
+
+        .todo-item.completed {
+            background: rgba(34, 197, 94, 0.1);
+            border-color: rgba(34, 197, 94, 0.2);
+        }
+
+        .todo-item.completed .todo-text {
+            text-decoration: line-through;
+            color: #6b7280;
+            opacity: 0.7;
+        }
+
+        .todo-checkbox {
+            margin-right: 16px;
+            width: 22px;
+            height: 22px;
+            cursor: pointer;
+            accent-color: #6366f1;
+            border-radius: 6px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .todo-content {
+            flex: 1;
+            position: relative;
+            z-index: 1;
+        }
+
+        .todo-text {
+            font-size: 16px;
+            font-weight: 500;
+            color: #1f2937;
+            word-break: break-word;
+            line-height: 1.5;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .todo-description {
+            font-size: 13px;
+            color: #6b7280;
+            margin-top: 4px;
+            line-height: 1.4;
+            position: relative;
+            z-index: 1;
+            max-height: 0;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .todo-description.expanded {
+            max-height: 100px;
+            margin-top: 8px;
+        }
+
+        .todo-expand-btn {
+            background: none;
+            border: none;
+            color: #6366f1;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            padding: 2px 4px;
+            border-radius: 4px;
+            transition: all 0.2s ease;
+            margin-left: 8px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .todo-expand-btn:hover {
+            background: rgba(99, 102, 241, 0.1);
+            color: #5b21b6;
+        }
+
+        .todo-due-date {
+            font-size: 11px;
+            font-weight: 600;
+            color: #6b7280;
+            margin-left: 12px;
+            padding: 6px 12px;
+            border-radius: 20px;
+            background: rgba(107, 114, 128, 0.1);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .todo-due-date.overdue {
+            background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
+            color: #dc2626;
+            border: 1px solid rgba(220, 38, 38, 0.2);
+        }
+
+        .todo-due-date.today {
+            background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+            color: #d97706;
+            border: 1px solid rgba(217, 119, 6, 0.2);
+        }
+
+        .todo-due-date.upcoming {
+            background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+            color: #2563eb;
+            border: 1px solid rgba(37, 99, 235, 0.2);
+        }
+
+        .todo-due-date.period {
+            background: linear-gradient(135deg, #f3e8ff 0%, #e9d5ff 100%);
+            color: #7c3aed;
+            border: 1px solid rgba(124, 58, 237, 0.2);
+        }
+
+        .todo-due-date.period-active {
+            background: linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%);
+            color: #16a34a;
+            border: 1px solid rgba(34, 197, 94, 0.2);
+        }
+
+        .delete-btn {
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+            color: white;
+            border: none;
+            padding: 10px 16px;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 600;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 2px 8px rgba(239, 68, 68, 0.3);
+            position: relative;
+            z-index: 1;
+        }
+
+        .delete-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(239, 68, 68, 0.4);
+        }
+
+        .delete-btn:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 4px rgba(239, 68, 68, 0.3);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 40px;
+            color: #6b7280;
+            font-size: 18px;
+            font-weight: 400;
+            line-height: 1.6;
+            background: rgba(255, 255, 255, 0.4);
+            border-radius: 16px;
+            border: 2px dashed rgba(107, 114, 128, 0.2);
+        }
+
+        .tabs {
+            display: flex;
+            background: rgba(248, 250, 252, 0.8);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+            padding: 8px;
+            gap: 4px;
+        }
+
+        .tab {
+            flex: 1;
+            padding: 12px 16px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            color: #64748b;
+            border-radius: 12px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+        }
+
+        .tab:hover {
+            background: rgba(255, 255, 255, 0.6);
+            color: #475569;
+        }
+
+        .tab.active {
+            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+            color: white;
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+            transform: translateY(-1px);
+        }
+
+        .view-toggle {
+            display: flex;
+            gap: 6px;
+            margin-left: auto;
+            background: rgba(255, 255, 255, 0.6);
+            padding: 4px;
+            border-radius: 12px;
+            backdrop-filter: blur(10px);
+        }
+
+        .view-btn {
+            padding: 10px 16px;
+            background: none;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 600;
+            color: #64748b;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .view-btn:hover {
+            background: rgba(255, 255, 255, 0.8);
+            color: #475569;
+        }
+
+        .view-btn.active {
+            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+            color: white;
+            box-shadow: 0 2px 8px rgba(99, 102, 241, 0.3);
+            transform: translateY(-1px);
+        }
+
+        .stats {
+            padding: 24px 32px;
+            background: linear-gradient(135deg, rgba(248, 250, 252, 0.8) 0%, rgba(241, 245, 249, 0.8) 100%);
+            backdrop-filter: blur(10px);
+            border-top: 1px solid rgba(0, 0, 0, 0.06);
+            display: flex;
+            justify-content: space-between;
+            font-size: 14px;
+            font-weight: 500;
+            color: #64748b;
+        }
+
+        .stats span {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .stats span span {
+            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+            color: white;
+            padding: 4px 8px;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 12px;
+            min-width: 24px;
+            text-align: center;
+        }
+
+        @media (max-width: 768px) {
+            body {
+                padding: 12px;
+            }
+            
+            .container {
+                margin: 0;
+                border-radius: 20px;
+            }
+            
+            .header {
+                padding: 32px 24px;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .input-container {
+                flex-direction: column;
+            }
+            
+            .input-row {
+                min-width: auto;
+            }
+            
+            .input-section, .todo-list {
+                padding: 24px;
+            }
+            
+            .todo-item {
+                padding: 16px;
+            }
+            
+            .stats {
+                padding: 20px 24px;
+                flex-direction: column;
+                gap: 12px;
+                text-align: center;
+            }
+            
+            .tabs {
+                flex-direction: column;
+                gap: 8px;
+            }
+            
+            .view-toggle {
+                margin-left: 0;
+                margin-top: 8px;
+                justify-content: center;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .header h1 {
+                font-size: 1.75rem;
+            }
+            
+            .header p {
+                font-size: 1rem;
+            }
+            
+            .input-section, .todo-list {
+                padding: 20px;
+            }
+            
+            .todo-item {
+                padding: 14px;
+                flex-wrap: wrap;
+                gap: 8px;
+            }
+            
+            .todo-due-date {
+                order: 3;
+                width: 100%;
+                margin-left: 38px;
+                margin-top: 4px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📝 TODOリスト</h1>
+            <p>今日も素敵な一日にしよう！</p>
+        </div>
+        
+        <div class="input-section">
+            <div class="input-container">
+                <div class="input-row">
+                    <input type="text" id="taskInput" placeholder="新しいタスクを入力してください..." />
+                    <button id="addBtn">追加</button>
+                </div>
+                <div class="task-type-toggle">
+                    <button type="button" class="task-type-btn active" data-type="single">📅 単発タスク</button>
+                    <button type="button" class="task-type-btn" data-type="period">📆 期間タスク</button>
+                </div>
+                <div class="date-input">
+                    <div class="date-field single-date-input">
+                        <label for="dueDateInput">期日</label>
+                        <input type="date" id="dueDateInput" />
+                    </div>
+                    <div class="period-inputs">
+                        <div class="date-field">
+                            <label for="startDateInput">開始日</label>
+                            <input type="date" id="startDateInput" />
+                        </div>
+                        <div class="date-field">
+                            <label for="endDateInput">終了日</label>
+                            <input type="date" id="endDateInput" />
+                        </div>
+                    </div>
+                </div>
+                <div class="description-input">
+                    <label for="descriptionInput">概要（任意）</label>
+                    <textarea id="descriptionInput" placeholder="タスクの詳細やメモを入力..."></textarea>
+                </div>
+            </div>
+        </div>
+        
+        <div class="tabs">
+            <button class="tab active" data-filter="all">全て</button>
+            <button class="tab" data-filter="active">未完了</button>
+            <button class="tab" data-filter="completed">完了済み</button>
+            <div class="view-toggle">
+                <button class="view-btn active" data-view="list">📝 リスト</button>
+                <button class="view-btn" data-view="calendar">📅 カレンダー</button>
+            </div>
+        </div>
+        
+        <div class="todo-list">
+            <div id="listView">
+                <div id="todoContainer"></div>
+                <div id="emptyState" class="empty-state">
+まだタスクがありません。<br>上のフォームから新しいタスクを追加してみましょう！
+                </div>
+            </div>
+            <div id="calendarView" style="display: none;">
+                <div id="calendarContainer"></div>
+            </div>
+        </div>
+        
+        <div class="stats">
+            <span>総タスク数: <span id="totalCount">0</span></span>
+            <span>完了済み: <span id="completedCount">0</span></span>
+            <span>残り: <span id="remainingCount">0</span></span>
+        </div>
+    </div>
+
+    <script>
+        class TodoApp {
+            constructor() {
+                this.todos = this.loadTodos();
+                this.currentFilter = 'all';
+                this.currentView = 'list';
+                this.taskType = 'single';
+                this.initElements();
+                this.bindEvents();
+                this.render();
+            }
+
+            initElements() {
+                this.taskInput = document.getElementById('taskInput');
+                this.descriptionInput = document.getElementById('descriptionInput');
+                this.dueDateInput = document.getElementById('dueDateInput');
+                this.startDateInput = document.getElementById('startDateInput');
+                this.endDateInput = document.getElementById('endDateInput');
+                this.addBtn = document.getElementById('addBtn');
+                this.todoContainer = document.getElementById('todoContainer');
+                this.emptyState = document.getElementById('emptyState');
+                this.totalCount = document.getElementById('totalCount');
+                this.completedCount = document.getElementById('completedCount');
+                this.remainingCount = document.getElementById('remainingCount');
+                this.tabs = document.querySelectorAll('.tab');
+                this.viewBtns = document.querySelectorAll('.view-btn');
+                this.taskTypeBtns = document.querySelectorAll('.task-type-btn');
+                this.listView = document.getElementById('listView');
+                this.calendarView = document.getElementById('calendarView');
+                this.calendarContainer = document.getElementById('calendarContainer');
+                this.singleDateInput = document.querySelector('.single-date-input');
+                this.periodInputs = document.querySelector('.period-inputs');
+            }
+
+            bindEvents() {
+                this.addBtn.addEventListener('click', () => this.addTodo());
+                this.taskInput.addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') this.addTodo();
+                });
+                this.taskInput.addEventListener('input', () => {
+                    this.addBtn.disabled = this.taskInput.value.trim() === '';
+                });
+                
+                this.tabs.forEach(tab => {
+                    tab.addEventListener('click', () => {
+                        this.setFilter(tab.dataset.filter);
+                    });
+                });
+                
+                this.viewBtns.forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        this.setView(btn.dataset.view);
+                    });
+                });
+                
+                this.taskTypeBtns.forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        this.setTaskType(btn.dataset.type);
+                    });
+                });
+                
+                this.startDateInput.addEventListener('change', () => {
+                    this.validatePeriodDates();
+                });
+                
+                this.endDateInput.addEventListener('change', () => {
+                    this.validatePeriodDates();
+                });
+            }
+
+            setTaskType(type) {
+                this.taskType = type;
+                
+                this.taskTypeBtns.forEach(btn => {
+                    btn.classList.toggle('active', btn.dataset.type === type);
+                });
+                
+                if (type === 'single') {
+                    this.singleDateInput.style.display = 'flex';
+                    this.periodInputs.classList.remove('active');
+                } else {
+                    this.singleDateInput.style.display = 'none';
+                    this.periodInputs.classList.add('active');
+                }
+            }
+
+            validatePeriodDates() {
+                const startDate = this.startDateInput.value;
+                const endDate = this.endDateInput.value;
+                
+                if (startDate && endDate && startDate > endDate) {
+                    this.endDateInput.setCustomValidity('終了日は開始日以降である必要があります');
+                    this.endDateInput.reportValidity();
+                    return false;
+                } else {
+                    this.endDateInput.setCustomValidity('');
+                    return true;
+                }
+            }
+
+            addTodo() {
+                const text = this.taskInput.value.trim();
+                if (!text) return;
+                
+                if (this.taskType === 'period' && !this.validatePeriodDates()) {
+                    return;
+                }
+
+                const todo = {
+                    id: Date.now(),
+                    text: text,
+                    description: this.descriptionInput.value.trim() || null,
+                    completed: false,
+                    createdAt: new Date().toISOString(),
+                    type: this.taskType
+                };
+                
+                if (this.taskType === 'single') {
+                    todo.dueDate = this.dueDateInput.value || null;
+                } else {
+                    todo.startDate = this.startDateInput.value || null;
+                    todo.endDate = this.endDateInput.value || null;
+                }
+
+                this.todos.unshift(todo);
+                this.taskInput.value = '';
+                this.descriptionInput.value = '';
+                this.dueDateInput.value = '';
+                this.startDateInput.value = '';
+                this.endDateInput.value = '';
+                this.addBtn.disabled = true;
+                this.saveTodos();
+                this.render();
+            }
+
+            toggleTodo(id) {
+                const todo = this.todos.find(t => t.id === id);
+                if (todo) {
+                    todo.completed = !todo.completed;
+                    this.saveTodos();
+                    this.render();
+                }
+            }
+
+            deleteTodo(id) {
+                if (confirm('このタスクを削除しますか？')) {
+                    this.todos = this.todos.filter(t => t.id !== id);
+                    this.saveTodos();
+                    this.render();
+                }
+            }
+
+            setFilter(filter) {
+                this.currentFilter = filter;
+                
+                this.tabs.forEach(tab => {
+                    tab.classList.toggle('active', tab.dataset.filter === filter);
+                });
+                
+                this.render();
+            }
+
+            getFilteredTodos() {
+                switch (this.currentFilter) {
+                    case 'active':
+                        return this.todos.filter(todo => !todo.completed);
+                    case 'completed':
+                        return this.todos.filter(todo => todo.completed);
+                    default:
+                        return this.todos;
+                }
+            }
+
+            render() {
+                this.renderTodos();
+                this.updateStats();
+            }
+
+            renderTodos() {
+                const filteredTodos = this.getFilteredTodos();
+                
+                if (filteredTodos.length === 0) {
+                    this.todoContainer.style.display = 'none';
+                    this.emptyState.style.display = 'block';
+                    
+                    let emptyMessage = '';
+                    switch (this.currentFilter) {
+                        case 'active':
+                            emptyMessage = this.todos.length === 0 ? 
+                                'まだタスクがありません。<br>上のフォームから新しいタスクを追加してみましょう！' : 
+                                'すべてのタスクが完了しています！<br>お疲れ様でした🎉';
+                            break;
+                        case 'completed':
+                            emptyMessage = 'まだ完了したタスクがありません。<br>タスクを完了させてみましょう！';
+                            break;
+                        default:
+                            emptyMessage = 'まだタスクがありません。<br>上のフォームから新しいタスクを追加してみましょう！';
+                    }
+                    this.emptyState.innerHTML = emptyMessage;
+                } else {
+                    this.todoContainer.style.display = 'block';
+                    this.emptyState.style.display = 'none';
+                    
+                    this.todoContainer.innerHTML = filteredTodos.map(todo => `
+                        <div class="todo-item ${todo.completed ? 'completed' : ''}">
+                            <input 
+                                type="checkbox" 
+                                class="todo-checkbox" 
+                                ${todo.completed ? 'checked' : ''}
+                                onchange="todoApp.toggleTodo(${todo.id})"
+                            />
+                            <div class="todo-content">
+                                <div class="todo-text">
+                                    ${this.escapeHtml(todo.text)}
+                                    ${todo.description ? `<button class="todo-expand-btn" onclick="todoApp.toggleDescription(${todo.id})">詳細</button>` : ''}
+                                </div>
+                                ${todo.description ? `<div class="todo-description" id="desc-${todo.id}">${this.escapeHtml(todo.description)}</div>` : ''}
+                            </div>
+                            ${todo.dueDate || todo.startDate || todo.endDate ? `<span class="todo-due-date ${this.getDueDateClass(todo)}">${this.formatDueDate(todo)}</span>` : ''}
+                            <button 
+                                class="delete-btn" 
+                                onclick="todoApp.deleteTodo(${todo.id})"
+                            >
+                                削除
+                            </button>
+                        </div>
+                    `).join('');
+                }
+            }
+
+            updateStats() {
+                const total = this.todos.length;
+                const completed = this.todos.filter(t => t.completed).length;
+                const remaining = total - completed;
+
+                this.totalCount.textContent = total;
+                this.completedCount.textContent = completed;
+                this.remainingCount.textContent = remaining;
+            }
+
+            escapeHtml(text) {
+                const div = document.createElement('div');
+                div.textContent = text;
+                return div.innerHTML;
+            }
+
+            saveTodos() {
+                try {
+                    localStorage.setItem('todos', JSON.stringify(this.todos));
+                } catch (error) {
+                    console.error('Failed to save todos:', error);
+                }
+            }
+
+            loadTodos() {
+                try {
+                    const saved = localStorage.getItem('todos');
+                    return saved ? JSON.parse(saved) : [];
+                } catch (error) {
+                    console.error('Failed to load todos:', error);
+                    return [];
+                }
+            }
+
+            setView(view) {
+                this.currentView = view;
+                
+                this.viewBtns.forEach(btn => {
+                    btn.classList.toggle('active', btn.dataset.view === view);
+                });
+                
+                if (view === 'list') {
+                    this.listView.style.display = 'block';
+                    this.calendarView.style.display = 'none';
+                } else {
+                    this.listView.style.display = 'none';
+                    this.calendarView.style.display = 'block';
+                }
+                
+                this.render();
+            }
+
+            getDueDateClass(todo) {
+                if (todo.type === 'period') {
+                    return this.getPeriodDateClass(todo);
+                }
+                
+                if (!todo.dueDate) return '';
+                
+                const today = new Date();
+                const due = new Date(todo.dueDate);
+                const diffTime = due - today;
+                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                
+                if (diffDays < 0) return 'overdue';
+                if (diffDays === 0) return 'today';
+                if (diffDays <= 7) return 'upcoming';
+                return '';
+            }
+
+            formatDueDate(todo) {
+                if (todo.type === 'period') {
+                    return this.formatPeriodDate(todo);
+                }
+                
+                if (!todo.dueDate) return '';
+                
+                const date = new Date(todo.dueDate);
+                const today = new Date();
+                const diffTime = date - today;
+                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                
+                if (diffDays === 0) return '今日';
+                if (diffDays === 1) return '明日';
+                if (diffDays === -1) return '昨日';
+                if (diffDays < 0) return `${Math.abs(diffDays)}日過ぎ`;
+                if (diffDays <= 7) return `${diffDays}日後`;
+                
+                return date.toLocaleDateString('ja-JP', { month: 'short', day: 'numeric' });
+            }
+
+            formatPeriodDate(todo) {
+                if (!todo.startDate && !todo.endDate) return '';
+                
+                const today = new Date();
+                const todayStr = today.toISOString().split('T')[0];
+                
+                let startText = '';
+                let endText = '';
+                
+                if (todo.startDate) {
+                    const startDate = new Date(todo.startDate);
+                    startText = startDate.toLocaleDateString('ja-JP', { month: 'short', day: 'numeric' });
+                }
+                
+                if (todo.endDate) {
+                    const endDate = new Date(todo.endDate);
+                    endText = endDate.toLocaleDateString('ja-JP', { month: 'short', day: 'numeric' });
+                }
+                
+                if (startText && endText) {
+                    return `${startText} ~ ${endText}`;
+                } else if (startText) {
+                    return `${startText}から`;
+                } else if (endText) {
+                    return `${endText}まで`;
+                }
+                
+                return '';
+            }
+
+            getPeriodDateClass(todo) {
+                if (todo.type !== 'period') return '';
+                
+                const today = new Date();
+                const todayStr = today.toISOString().split('T')[0];
+                
+                if (todo.startDate && todo.endDate) {
+                    if (todayStr >= todo.startDate && todayStr <= todo.endDate) {
+                        return 'period-active';
+                    } else if (todayStr > todo.endDate) {
+                        return 'overdue';
+                    } else {
+                        return 'period';
+                    }
+                } else if (todo.endDate) {
+                    if (todayStr > todo.endDate) {
+                        return 'overdue';
+                    } else {
+                        return 'period';
+                    }
+                } else {
+                    return 'period';
+                }
+            }
+
+            render() {
+                if (this.currentView === 'list') {
+                    this.renderTodos();
+                } else {
+                    this.renderCalendar();
+                }
+                this.updateStats();
+            }
+
+            renderCalendar() {
+                const today = new Date();
+                const currentMonth = today.getMonth();
+                const currentYear = today.getFullYear();
+                
+                const firstDay = new Date(currentYear, currentMonth, 1);
+                const lastDay = new Date(currentYear, currentMonth + 1, 0);
+                const startDate = new Date(firstDay);
+                startDate.setDate(startDate.getDate() - firstDay.getDay());
+                
+                const monthNames = ['1月', '2月', '3月', '4月', '5月', '6月',
+                                  '7月', '8月', '9月', '10月', '11月', '12月'];
+                
+                let calendarHTML = `
+                    <div style="text-align: center; font-size: 20px; font-weight: 700; margin-bottom: 24px; color: #1f2937;">
+                        ${currentYear}年 ${monthNames[currentMonth]}
+                    </div>
+                    <div id="calendar-grid" style="position: relative; display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; background: rgba(0, 0, 0, 0.06); border-radius: 16px; overflow: visible; padding: 2px;">
+                        ${['日', '月', '火', '水', '木', '金', '土'].map((day, index) => {
+                            let color = '#64748b'; // デフォルト色
+                            if (index === 0) color = '#dc2626'; // 日曜日（赤）
+                            if (index === 6) color = '#2563eb'; // 土曜日（青）
+                            
+                            return `<div style="background: linear-gradient(135deg, rgba(248, 250, 252, 0.9) 0%, rgba(241, 245, 249, 0.9) 100%); padding: 12px; text-align: center; font-weight: 600; font-size: 14px; color: ${color};">${day}</div>`;
+                        }).join('')}
+                `;
+                
+                // 通常のカレンダーセルを生成
+                for (let i = 0; i < 42; i++) {
+                    const date = new Date(startDate);
+                    date.setDate(startDate.getDate() + i);
+                    
+                    const dateStr = date.toISOString().split('T')[0];
+                    const isCurrentMonth = date.getMonth() === currentMonth;
+                    const isToday = date.toDateString() === today.toDateString();
+                    
+                    // 単発タスクのみを表示
+                    const singleTodos = this.todos.filter(todo => {
+                        return todo.type !== 'period' && todo.dueDate === dateStr;
+                    });
+                    
+                    calendarHTML += `
+                        <div class="calendar-cell" data-date="${dateStr}" style="
+                            background: ${isToday ? 'linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%)' : 'rgba(255, 255, 255, 0.9)'}; 
+                            min-height: 90px; 
+                            padding: 8px; 
+                            border-radius: 12px;
+                            opacity: ${isCurrentMonth ? '1' : '0.4'};
+                            ${isToday ? 'border: 2px solid #3b82f6; box-shadow: 0 4px 12px rgba(59, 130, 246, 0.2);' : 'border: 1px solid rgba(0, 0, 0, 0.06);'}
+                            transition: all 0.2s ease;
+                            cursor: pointer;
+                            position: relative;
+                        " onmouseover="this.style.transform='scale(1.02)'; this.style.boxShadow='0 4px 12px rgba(0, 0, 0, 0.1)'" onmouseout="this.style.transform='scale(1)'; this.style.boxShadow='${isToday ? '0 4px 12px rgba(59, 130, 246, 0.2)' : 'none'}'">
+                            <div style="font-size: 13px; font-weight: 700; margin-bottom: 4px; color: ${isToday ? '#1e40af' : this.getDateColor(date)};">${date.getDate()}</div>
+                            ${singleTodos.map(todo => {
+                                let tooltipText = todo.text;
+                                if (todo.description) {
+                                    tooltipText += `\n${todo.description}`;
+                                }
+                                if (todo.dueDate) {
+                                    tooltipText += `\n期日: ${todo.dueDate}`;
+                                }
+                                
+                                return `
+                                    <div style="
+                                        font-size: 10px;
+                                        font-weight: 500;
+                                        padding: 3px 6px;
+                                        margin: 2px 0;
+                                        background: ${todo.completed ? 'linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%)' : 'linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%)'};
+                                        border-radius: 6px;
+                                        text-decoration: ${todo.completed ? 'line-through' : 'none'};
+                                        color: ${todo.completed ? '#16a34a' : '#374151'};
+                                        cursor: pointer;
+                                        overflow: hidden;
+                                        text-overflow: ellipsis;
+                                        white-space: nowrap;
+                                        transition: all 0.2s ease;
+                                        border: 1px solid ${todo.completed ? 'rgba(34, 197, 94, 0.2)' : 'rgba(0, 0, 0, 0.06)'};
+                                    " onclick="todoApp.toggleTodo(${todo.id})" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'" title="${this.escapeHtml(tooltipText)}">
+                                        ${this.escapeHtml(todo.text.substring(0, 12))}${todo.text.length > 12 ? '...' : ''}
+                                    </div>
+                                `;
+                            }).join('')}
+                        </div>
+                    `;
+                }
+                
+                calendarHTML += '</div>';
+                this.calendarContainer.innerHTML = calendarHTML;
+                
+                // 期間タスクのバーを描画
+                this.renderPeriodBars(startDate);
+            }
+
+            renderPeriodBars(calendarStartDate) {
+                const calendarGrid = document.getElementById('calendar-grid');
+                if (!calendarGrid) return;
+                
+                // 期間タスクを取得
+                const periodTasks = this.todos.filter(todo => todo.type === 'period' && todo.startDate && todo.endDate);
+                
+                periodTasks.forEach((todo, index) => {
+                    this.createPeriodBar(todo, calendarStartDate, calendarGrid, index);
+                });
+            }
+
+            createPeriodBar(todo, calendarStartDate, calendarGrid, zIndex) {
+                const startDate = new Date(todo.startDate);
+                const endDate = new Date(todo.endDate);
+                
+                // カレンダーの範囲内での開始・終了位置を計算（ヘッダー行を除外）
+                const startDiff = Math.floor((startDate - calendarStartDate) / (24 * 60 * 60 * 1000));
+                const endDiff = Math.floor((endDate - calendarStartDate) / (24 * 60 * 60 * 1000));
+                
+                // カレンダーの範囲外の場合はスキップ
+                if (endDiff < 0 || startDiff >= 42) return;
+                
+                const clampedStart = Math.max(0, startDiff);
+                const clampedEnd = Math.min(41, endDiff);
+                
+                // 週ごとにバーを描画
+                let currentDate = clampedStart;
+                let barCount = 0;
+                
+                while (currentDate <= clampedEnd) {
+                    const currentWeek = Math.floor(currentDate / 7);
+                    const weekStart = currentWeek * 7;
+                    const weekEnd = Math.min(weekStart + 6, 41);
+                    
+                    const barStart = Math.max(currentDate, weekStart);
+                    const barEnd = Math.min(clampedEnd, weekEnd);
+                    
+                    if (barStart <= barEnd) {
+                        this.createWeeklyBar(todo, barStart, barEnd, calendarGrid, zIndex + barCount, currentWeek);
+                        barCount++;
+                    }
+                    
+                    currentDate = weekEnd + 1;
+                }
+            }
+
+            createWeeklyBar(todo, startPos, endPos, calendarGrid, zIndex, weekIndex) {
+                const bar = document.createElement('div');
+                const startCol = startPos % 7;
+                const endCol = endPos % 7;
+                const row = Math.floor(startPos / 7) + 1; // +1 for header row
+                
+                const topOffset = 35 + (zIndex % 3) * 18; // バーを重ならないように配置
+                
+                bar.className = 'period-bar';
+                bar.style.cssText = `
+                    position: absolute;
+                    left: calc(${(startCol / 7) * 100}% + 2px);
+                    width: calc(${((endCol - startCol + 1) / 7) * 100}% - 4px);
+                    top: calc(${((row - 1) * 100) / 6}% + ${topOffset}px);
+                    height: 14px;
+                    background: ${todo.completed ? 
+                        'linear-gradient(135deg, #16a34a 0%, #15803d 100%)' : 
+                        'linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%)'};
+                    border-radius: 7px;
+                    z-index: ${1000 + zIndex};
+                    cursor: pointer;
+                    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+                    border: 1px solid rgba(255, 255, 255, 0.3);
+                    display: flex;
+                    align-items: center;
+                    padding: 0 6px;
+                    font-size: 9px;
+                    font-weight: 600;
+                    color: white;
+                    overflow: hidden;
+                    text-overflow: ellipsis;
+                    white-space: nowrap;
+                    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+                `;
+                
+                // テキストは最初のバーまたは十分な幅がある場合に表示
+                const barWidth = endCol - startCol + 1;
+                if (weekIndex === 0 || barWidth >= 3) {
+                    const maxLength = Math.max(8, barWidth * 2);
+                    bar.textContent = todo.text.length > maxLength ? 
+                        todo.text.substring(0, maxLength) + '...' : todo.text;
+                }
+                
+                // イベントリスナー
+                bar.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    this.toggleTodo(todo.id);
+                });
+                
+                bar.addEventListener('mouseenter', () => {
+                    bar.style.transform = 'translateY(-2px) scale(1.02)';
+                    bar.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.25)';
+                    bar.style.zIndex = '2000';
+                });
+                
+                bar.addEventListener('mouseleave', () => {
+                    bar.style.transform = 'translateY(0) scale(1)';
+                    bar.style.boxShadow = '0 2px 6px rgba(0, 0, 0, 0.15)';
+                    bar.style.zIndex = `${1000 + zIndex}`;
+                });
+                
+                // ツールチップ的な機能
+                let tooltipText = `${todo.text} (${todo.startDate} ~ ${todo.endDate})`;
+                if (todo.description) {
+                    tooltipText += `\n${todo.description}`;
+                }
+                bar.title = tooltipText;
+                
+                calendarGrid.appendChild(bar);
+            }
+
+            getDateColor(date) {
+                const dayOfWeek = date.getDay();
+                if (dayOfWeek === 0) return '#dc2626'; // 日曜日（赤）
+                if (dayOfWeek === 6) return '#2563eb'; // 土曜日（青）
+                return '#374151'; // 平日（グレー）
+            }
+
+            toggleDescription(todoId) {
+                const descElement = document.getElementById(`desc-${todoId}`);
+                if (descElement) {
+                    descElement.classList.toggle('expanded');
+                    
+                    // ボタンテキストの更新
+                    const button = descElement.parentElement.querySelector('.todo-expand-btn');
+                    if (button) {
+                        button.textContent = descElement.classList.contains('expanded') ? '折りたたむ' : '詳細';
+                    }
+                }
+            }
+        }
+
+        const todoApp = new TodoApp();
+    </script>
+</body>
+</html>
